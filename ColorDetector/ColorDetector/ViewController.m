@@ -10,7 +10,7 @@
 #import "ColorNamer.h"
 #include <Carbon/Carbon.h>
 
-#define VIEW_WIDTH 150
+#define VIEW_WIDTH 160
 
 @implementation ViewController
 {
@@ -21,7 +21,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    isDisplayHex = YES;
+    isDisplayHex = NO;
     shouldFollow = YES;
     [self roundConrerLabel];
     [self.baseView setDelegate:self];
@@ -42,7 +42,12 @@
             if (!image) continue;
             NSBitmapImageRep* bitmap = [[NSBitmapImageRep alloc] initWithCGImage:image];
             CGImageRelease(image);
-            NSColor* color = [bitmap colorAtX:amplifiedWidth y:amplifiedWidth];
+            NSColor* color;
+            if (screenSize.width == 1440) {
+                color = [bitmap colorAtX:amplifiedWidth y:amplifiedWidth];
+            } else {
+                color = [bitmap colorAtX:amplifiedWidth / 2 y:amplifiedWidth / 2];
+            }
             dispatch_sync(dispatch_get_main_queue(), ^{
                 NSString* hexString = [NSString stringWithFormat:@"%02X%02X%02X",
                                        (int) (color.redComponent * 0xFF),
@@ -84,11 +89,14 @@
     {
         case kVK_ANSI_S:
             isDisplayHex = !isDisplayHex;
+            break;
         case kVK_ANSI_C:
             [[NSPasteboard generalPasteboard] clearContents];
             [[NSPasteboard generalPasteboard] setString:currentHexString forType:NSPasteboardTypeString];
+            break;
         case kVK_ANSI_F:
             shouldFollow = !shouldFollow;
+            break;
         default:
             break;
     }
